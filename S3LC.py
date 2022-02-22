@@ -1,12 +1,3 @@
-# This script is intended to simplify the process of adding Intelligent Tiering Lifecycle Policies 
-# to S3 buckets for all objects >128KB. See https://aws.amazon.com/s3/storage-classes/intelligent-tiering/ for
-# details on Intelligent Tiering for S3 Buckets. 
-# The Amazon S3 Intelligent-Tiering storage class is designed to optimize storage costs by automatically moving data to the most cost-effective access tier when access patterns change. 
-# For a small monthly object monitoring and automation charge, S3 Intelligent-Tiering monitors access patterns and automatically moves objects that have not been accessed to lower cost access tiers. 
-# S3 Intelligent-Tiering is the ideal storage class for data with unknown, changing, or unpredictable access patterns, independent of object size or retention period. 
-# You can use S3 Intelligent-Tiering as the default storage class for data lakes, analytics, and new applications.  
-
-
 import boto3
 import pandas as pd
 from datetime import datetime
@@ -24,21 +15,15 @@ client = boto3.client('sts')
 # method to determine accountID 
 def getAccountID():
     account_id = client.get_caller_identity()
-    return(account_id['Account'])
+    return(account_id['829127864189'])
     #account_id = iam.CurrentUser().arn.split(':')[4]
     #return(account_id)
 
 def main():
     listBuckets()
     createXls(TransitionStatus)
-
-## Global list variable to keep track of the Bucket Name, Transition Days, StorageClass, Status  
-TransitionStatus = []
-
-# This method returns the LC policy. This policy will be used as the default LC policy 
-# for the bucket with no LC policy and for the bucket with no "Transition policy" 
-# Pass the name of the bucket with the method
-def createLCP(Name):
+    
+def createLCP(Lifecycle.Test):
     lcp = {
             'Rules': [
                 {
@@ -62,24 +47,11 @@ def createLCP(Name):
         }
     return lcp
 
-# This method tracks the LC policy associated with the bucket. It checks for 3 scenarios. 
-# Scenario #1
-# If an LC policy exist,  the script checks if it has a transition policy (with a StorageClass such as Glacier, S3-Infrequent access or even S3-Intelligent Tiering or others). 
-# If the transition policy does not exist, the script will add a new policy to the existing policy with the transition set for the Current and Previous version to the INT StorageClass with “0” days using createLCP(Name) 
-# and records the action in the global list variable - TransitionStatus with the status = 'updated existing LC Policy'
-#Scenario #2
-# If an LC policy exist and has a transition policy (to move to a different StorageClass such as Glacier, S3-Infrequent access or others), the script  records its action action in the excel sheet and take no action on the LC policy.
-# It just records - transition storage and days to transition in the global list variable - TransitionStatus with the status = 'No Changes LC Policy'
-# Scenario #3
-#   If no LC policy is attached to the bucket, the script adds a new policy with the transition set for the Current and Previous version to the INT StorageClass with “0” days. 
-# It records its action in the excel sheet in the global list variable with the TransitionStatus = 'Added LC Policy'
-
-# Policy Dictionary to track LC policy of the bucket
 policy = {}
 def createOrUpdateLCP(Name):
     ownerAccountId = getAccountID()
     try:
-        result = s3.get_bucket_lifecycle_configuration(Bucket=Name, ExpectedBucketOwner=ownerAccountId)
+        result = s3.get_bucket_lifecycle_configuration(Bucket=Name, ExpectedBucketOwner=829127864189)
         Rules= result['Rules']
         # Scenario #1 
         if any("Transitions" in keys for keys in Rules):
